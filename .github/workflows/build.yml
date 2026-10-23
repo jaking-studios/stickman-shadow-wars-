@@ -1,0 +1,123 @@
+name: Build
+
+# Builds Windows, Linux, Android (APK) and Web on every push. Pushing a tag
+# like v0.1.0 also publishes a GitHub Release with the downloads, and pushes
+# to main deploy the Web build to GitHub Pages (enable Pages -> "GitHub
+# Actions" in the repository settings once).
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.3"
+  EXPORT_NAME: StickmanShadowWars
+
+jobs:
+  smoke-test:
+    name: Smoke test (CPU vs CPU match)
+    runs-on: ubuntu-22.04
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import project
+        run: godot --headless --import
+      - name: Play a full match headless
+        run: |
+          godot --headless --fixed-fps 60 --quit-after 9000 -- --autoplay --log | tee match.log
+          grep -q "\[match\] over" match.log
+          ! grep -E "SCRIPT ERROR|Parse Error" match.log
+
+  export:
+    name: Export ${{ matrix.preset }}
+    needs: smoke-test
+    runs-on: ubuntu-22.04
+    container:
+      image: barichello/godot-ci:4.3
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: Windows Desktop
+            artifact: windows
+            file: StickmanShadowWars.exe
+          - preset: Linux
+            artifact: linux
+            file: StickmanShadowWars.x86_64
+          - preset: Android
+            artifact: android
+            file: StickmanShadowWars.apk
+          - preset: Web
+            artifact: web
+            file: index.html
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates ~/.config
+          [ -d ~/.config/godot ] || cp -r /root/.config/godot ~/.config/godot || true
+          [ -d ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable ] || \
+            cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/
+      - name: Export
+        run: |
+          mkdir -p build/${{ matrix.artifact }}
+          godot --headless --import
+          if [ "${{ matrix.artifact }}" = "android" ]; then
+            # Debug-signed APK: installs on any phone with "install unknown apps" allowed.
+            godot --headless --export-debug "${{ matrix.preset }}" "build/${{ matrix.artifact }}/${{ matrix.file }}"
+          else
+            godot --headless --export-release "${{ matrix.preset }}" "build/${{ matrix.artifact }}/${{ matrix.file }}"
+          fi
+          ls -la build/${{ matrix.artifact }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXPORT_NAME }}-${{ matrix.artifact }}
+          path: build/${{ matrix.artifact }}
+
+  release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: export
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Package
+        run: |
+          cd dist
+          for d in */; do (cd "$d" && zip -r "../${d%/}.zip" .); done
+          cp StickmanShadowWars-android/StickmanShadowWars.apk .
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/StickmanShadowWars.apk
+
+  pages:
+    name: Deploy web build to GitHub Pages
+    if: github.ref == 'refs/heads/main'
+    needs: export
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: StickmanShadowWars-web
+          path: web
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4
