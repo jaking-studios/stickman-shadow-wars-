@@ -6,7 +6,7 @@
 
 Chain combos, parry on the frame, roll through attacks, grab a katana or a war hammer, juggle off a launcher, survive endless waves of shadow fighters and send them flying as ragdolls.
 
-[![Build](https://github.com/jaineil32624/stickman-shadow-wars/actions/workflows/build.yml/badge.svg)](https://github.com/jaineil32624/stickman-shadow-wars/actions/workflows/build.yml)
+[![Build](https://github.com/jaineil32624/stickman-shadow-wars-/actions/workflows/build.yml/badge.svg)](https://github.com/jaineil32624/stickman-shadow-wars-/actions/workflows/build.yml)
 ![Godot 4.3](https://img.shields.io/badge/Godot-4.3-478cbf?logo=godotengine&logoColor=white)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20Android%20%7C%20Web-ff4d6d)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
@@ -31,7 +31,7 @@ Chain combos, parry on the frame, roll through attacks, grab a katana or a war h
 
 | Platform | How |
 | --- | --- |
-| 🌐 **Browser** | GitHub Pages build: `https://jaineil32624.github.io/stickman-shadow-wars/` (after Pages is enabled, see below) |
+| 🌐 **Browser** | GitHub Pages build: `https://jaineil32624.github.io/stickman-shadow-wars-/` (after Pages is enabled, see below) |
 | 🤖 **Android** | Download `StickmanShadowWars.apk` from the latest [Release](../../releases), open it on your phone and allow "install unknown apps" |
 | 🪟 **Windows** | Download the Windows zip from [Releases](../../releases) and run `StickmanShadowWars.exe` |
 | 🐧 **Linux** | Download the Linux zip from [Releases](../../releases), `chmod +x` and run |
