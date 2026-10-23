@@ -4,7 +4,7 @@
 
 **A fast, juicy 2D stickman fighting game built in Godot 4. Play on Windows, Linux, Android or right in your browser.**
 
-Chain combos, parry on the frame, roll through attacks, juggle off a launcher, splat your rival into a wall and send them flying as a ragdoll.
+Chain combos, parry on the frame, roll through attacks, grab a katana or a war hammer, juggle off a launcher, survive endless waves of shadow fighters and send them flying as ragdolls.
 
 [![Build](https://github.com/jaineil32624/stickman-shadow-wars/actions/workflows/build.yml/badge.svg)](https://github.com/jaineil32624/stickman-shadow-wars/actions/workflows/build.yml)
 ![Godot 4.3](https://img.shields.io/badge/Godot-4.3-478cbf?logo=godotengine&logoColor=white)
@@ -20,8 +20,12 @@ Chain combos, parry on the frame, roll through attacks, juggle off a launcher, s
 | Title screen | Combat |
 | --- | --- |
 | ![Main menu with two sparring stickmen](docs/screenshots/menu.png) | ![A three-hit combo with impact sparks](docs/screenshots/combat.png) |
-| **Perfect parry** | **Mobile touch controls** |
-| ![A perfect parry flashing gold](docs/screenshots/parry.png) | ![On-screen joystick and action buttons](docs/screenshots/mobile.png) |
+| **Arena Survival** | **Weapons** |
+| ![Fighting a wave of shadow stickmen in the dojo](docs/screenshots/survival.png) | ![Swinging a war hammer while a plasma sword waits on the floor](docs/screenshots/weapons.png) |
+| **Moonlit Dojo** | **Mobile touch controls** |
+| ![Wall splat in the Moonlit Dojo](docs/screenshots/dojo.png) | ![On-screen joystick and action buttons](docs/screenshots/mobile.png) |
+| **Perfect parry** | |
+| ![A perfect parry flashing gold](docs/screenshots/parry.png) | |
 
 ## Play it
 
@@ -45,17 +49,24 @@ Chain combos, parry on the frame, roll through attacks, juggle off a launcher, s
 - Knockback that grows as health drops, combo hitstun decay (no infinites), floor bounces, knockdowns and **wall splats**
 - Damage visibly affects movement: hurt fighters slouch and move slower
 
+**Weapons**
+- Weapon drops fall into the arena: **Katana**, **War Hammer**, **Spear** and **Plasma Sword**
+- Each has its own moveset: reach, speed, damage, knockback, and slashes in place of kicks
+- Weapons wear down and **break** after enough hits; KO'd fighters drop theirs
+- Toggle weapon drops from the menu
+
 **Feel and presentation**
 - Fully procedural stick-figure animation: every move is a pose that the rig blends into, with a run cycle, idle breathing and flips
 - **Verlet ragdoll** knockouts that collide with the arena
 - Hitstop, hit flashes, impact sparks, shock rings, motion trails, dust, screen shake and **slow-motion KO punch-ins**
 - Procedurally synthesised sound effects (no audio files needed)
-- Neon Rooftop arena: one-way platforms you can drop through, parallax city, rain
+- Two arenas: **Neon Rooftop** (parallax city, rain) and **Moonlit Dojo** (torii gate, cherry trees, drifting petals), or pick Random
 
 **Modes and AI**
 - 1P vs CPU, 2P local versus, CPU vs CPU (best of three rounds, 99-second timer)
-- CPU with **Easy / Normal / Hard / Nightmare** difficulty: reaction time, blocking, parrying, rolling, whiff punishing, anti-airs, combo follow-ups, movement prediction and simple habit adaptation
-- Saved profile (wins, XP, best combo)
+- **Arena Survival**: endless waves of shadow stickmen that get tougher, smarter and armed; heal between waves, beat your best wave
+- CPU with **Easy / Normal / Hard / Nightmare** difficulty: reaction time, blocking, parrying, rolling, whiff punishing, anti-airs, combo follow-ups, movement prediction, simple habit adaptation, grabbing weapons, and **teaming up** in group fights (one brawls while the others circle)
+- Saved profile (wins, XP, best combo, best survival wave)
 
 **Platforms and input**
 - Keyboard, up to two controllers, and on-screen touch controls on phones and tablets
@@ -91,13 +102,13 @@ The slice is built so the rest of the design can grow on top of it without rewri
 ```
 scripts/
 ├── autoload/          InputSetup (all bindings), GameState (settings + save), CombatBus (events), Sfx
-├── combat/            AttackData (frame data resource), MoveLibrary (movesets)
+├── combat/            AttackData (frame data), MoveLibrary (movesets), WeaponData + WeaponLibrary
 ├── fighter/           Fighter (physics, health, hit resolution), StickRig (procedural body + ragdoll)
 │   ├── state_machine.gd, fighter_state.gd
 │   └── states/        ground, air, attack, block, dodge, air_dodge, hitstun, knockdown, recover, ko
 ├── input/             FighterInput (base), PlayerInput (keyboard/pad/touch)
 ├── ai/                AIInput (CPU brain with difficulty profiles)
-├── game/              Match (round flow + juice), Arena, MatchCamera
+├── game/              Battle (shared base: juice, pause, weapon drops), Match (versus), Survival, Arena, MatchCamera, WeaponPickup
 ├── fx/                Effects (sparks, dust, rings, popups)
 └── ui/                Hud, TouchControls, MainMenu, UiStyle
 ```
@@ -117,7 +128,7 @@ GitHub Actions (`.github/workflows/build.yml`) runs a headless CPU-vs-CPU smoke 
 
 Local export: install Godot 4.3 export templates, then `Project → Export`. Android export needs an Android SDK path and debug keystore in *Editor Settings → Export → Android*.
 
-Handy command-line flags (after `--`): `--autoplay` starts a CPU vs CPU match, `--log` prints combat events, `--touch` forces touch controls, `--shot=<frame>:<file.png>` saves a screenshot.
+Handy command-line flags (after `--`): `--autoplay` starts a CPU vs CPU match (add `--survival`, `--dojo` or `--rooftop`), `--log` prints combat events, `--touch` forces touch controls, `--shot=<frame>:<file.png>` saves a screenshot.
 
 ## Roadmap
 

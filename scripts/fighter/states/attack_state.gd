@@ -91,7 +91,7 @@ func _check_hits() -> void:
 	var box := f.attack_rect(atk)
 	for node in f.get_tree().get_nodes_in_group(&"fighters"):
 		var other := node as Fighter
-		if other == f or other in _hit or not other.is_alive():
+		if other == f or other.team == f.team or other in _hit or not other.is_alive():
 			continue
 		var hurt := other.hurtbox_rect()
 		if not box.intersects(hurt):
@@ -102,5 +102,7 @@ func _check_hits() -> void:
 		_hit.append(other)
 		if result == Fighter.HitResult.HIT:
 			connected = true
+		if result != Fighter.HitResult.PARRIED:
+			f.wear_weapon()
 		if f.states.current != self:
 			return

@@ -3,9 +3,12 @@ extends Control
 ## sparring in the background using the same StickRig as the game.
 
 const MATCH_SCENE := "res://scenes/match.tscn"
+const SURVIVAL_SCENE := "res://scenes/survival.tscn"
 const SPAR_POSES: Array[StringName] = [&"idle", &"jab", &"cross", &"kick", &"block", &"heavy", &"uppercut", &"idle", &"dash", &"victory"]
 
 var _difficulty_button: Button
+var _arena_button: Button
+var _weapons_button: Button
 var _rigs: Array[StickRig] = []
 var _time := 0.0
 var _step := 0
@@ -28,13 +31,13 @@ func _ready() -> void:
 	center.offset_bottom = -70
 	add_child(center)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 10)
+	box.add_theme_constant_override("separation", 8)
 	center.add_child(box)
 
 	var title := Label.new()
 	title.text = "STICKMAN"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 84)
+	title.add_theme_font_size_override("font_size", 72)
 	title.add_theme_color_override("font_color", Color(0.95, 0.97, 1.0))
 	title.add_theme_color_override("font_outline_color", Color(0.25, 0.6, 1.0))
 	title.add_theme_constant_override("outline_size", 10)
@@ -42,7 +45,7 @@ func _ready() -> void:
 	var subtitle := Label.new()
 	subtitle.text = "S H A D O W   W A R S"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_size_override("font_size", 34)
+	subtitle.add_theme_font_size_override("font_size", 28)
 	subtitle.add_theme_color_override("font_color", Color(1.0, 0.35, 0.5))
 	box.add_child(subtitle)
 	var spacer := Control.new()
@@ -50,17 +53,28 @@ func _ready() -> void:
 	box.add_child(spacer)
 
 	var first := _add(box, "1P  vs  CPU", _start.bind(GameState.Mode.VS_CPU))
+	_add(box, "Arena Survival", _start.bind(GameState.Mode.SURVIVAL))
 	_add(box, "2P  Local Versus", _start.bind(GameState.Mode.VS_LOCAL))
 	_add(box, "CPU  vs  CPU", _start.bind(GameState.Mode.CPU_VS_CPU))
-	_difficulty_button = _add(box, "", _cycle_difficulty)
-	_refresh_difficulty()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	box.add_child(row)
+	_difficulty_button = _add(row, "", _cycle_difficulty, 185.0)
+	_arena_button = _add(row, "", _cycle_arena, 185.0)
+	_weapons_button = _add(box, "", _toggle_weapons)
+	_refresh_options()
 	if not OS.has_feature("web") and not OS.has_feature("mobile"):
 		_add(box, "Quit", get_tree().quit)
 	first.grab_focus()
 	# `godot -- --autoplay` jumps straight into a CPU vs CPU match (demo / CI smoke test).
-	if "--autoplay" in OS.get_cmdline_user_args():
+	var args := OS.get_cmdline_user_args()
+	if "--autoplay" in args:
 		GameState.difficulty = GameState.DIFFICULTIES.size() - 1
-		_start.call_deferred(GameState.Mode.CPU_VS_CPU)
+		if "--dojo" in args:
+			GameState.arena_choice = 1
+		elif "--rooftop" in args:
+			GameState.arena_choice = 0
+		_start.call_deferred(GameState.Mode.SURVIVAL if "--survival" in args else GameState.Mode.CPU_VS_CPU)
 
 	var footer := Label.new()
 	footer.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
@@ -70,12 +84,14 @@ func _ready() -> void:
 	footer.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
 	var p := GameState.profile
 	footer.text = "P1: WASD move · W jump · J light · K heavy · L block · Space dodge      P2: Arrows · Numpad 1/2/3/0      Controllers: X/Y/A/B + RB\n" \
-		+ "Wins %d / %d matches · XP %d · Best combo %d" % [p.wins, p.matches, p.xp, p.best_combo]
+		+ "Wins %d / %d · Best combo %d · Best survival wave %d · XP %d" % [p.wins, p.matches, p.best_combo, p.best_wave, p.xp]
 	add_child(footer)
 
 
-func _add(box: VBoxContainer, text: String, callback: Callable) -> Button:
-	var b := UiStyle.make_button(text)
+func _add(box: Container, text: String, callback: Callable, width := 380.0) -> Button:
+	var b := UiStyle.make_button(text, width)
+	if width < 380.0:
+		b.add_theme_font_size_override("font_size", 19)
 	b.pressed.connect(callback)
 	box.add_child(b)
 	return b
@@ -84,16 +100,28 @@ func _add(box: VBoxContainer, text: String, callback: Callable) -> Button:
 func _start(mode: GameState.Mode) -> void:
 	GameState.mode = mode
 	Sfx.play(&"hit_heavy", 0.8, -4.0)
-	get_tree().change_scene_to_file(MATCH_SCENE)
+	get_tree().change_scene_to_file(SURVIVAL_SCENE if mode == GameState.Mode.SURVIVAL else MATCH_SCENE)
 
 
 func _cycle_difficulty() -> void:
 	GameState.difficulty = (GameState.difficulty + 1) % GameState.DIFFICULTIES.size()
-	_refresh_difficulty()
+	_refresh_options()
 
 
-func _refresh_difficulty() -> void:
-	_difficulty_button.text = "Difficulty:  %s" % GameState.DIFFICULTIES[GameState.difficulty]
+func _cycle_arena() -> void:
+	GameState.arena_choice = (GameState.arena_choice + 1) % GameState.ARENAS.size()
+	_refresh_options()
+
+
+func _toggle_weapons() -> void:
+	GameState.weapons_enabled = not GameState.weapons_enabled
+	_refresh_options()
+
+
+func _refresh_options() -> void:
+	_difficulty_button.text = "CPU: %s" % GameState.DIFFICULTIES[GameState.difficulty]
+	_arena_button.text = GameState.ARENAS[GameState.arena_choice]
+	_weapons_button.text = "Weapon Drops:  %s" % ("ON" if GameState.weapons_enabled else "OFF")
 
 
 func _process(delta: float) -> void:

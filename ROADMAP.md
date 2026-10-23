@@ -1,8 +1,8 @@
 # Roadmap
 
-The full design for Stickman: Shadow Wars is large. Version 0.1 is a playable vertical slice that nails the combat core and lays down the architecture everything else plugs into. This file tracks every part of the design and where it stands.
+The full design for Stickman: Shadow Wars is large. Version 0.2 is a playable vertical slice that nails the combat core and lays down the architecture everything else plugs into. This file tracks every part of the design and where it stands.
 
-✅ done in 0.1 · 🟡 partly done / foundation in place · ⬜ planned
+✅ done · 🟡 partly done / foundation in place · ⬜ planned
 
 ## Core combat
 
@@ -35,10 +35,13 @@ The full design for Stickman: Shadow Wars is large. Version 0.1 is a playable ve
 
 | Item | Status |
 | --- | --- |
-| Moveset system that weapons plug into | ✅ (`AttackData` + `MoveLibrary`) |
-| Sword, katana, greatsword, spear, axe, hammer, staff | ⬜ |
+| Moveset system that weapons plug into | ✅ (`AttackData` + `WeaponLibrary`) |
+| Weapon pickups, durability, breaking, drop on KO | ✅ |
+| Katana, war hammer, spear | ✅ |
+| Sword, greatsword, axe, staff | ⬜ |
 | Bow, crossbow, throwing knives, grenades (projectile system) | ⬜ |
-| Plasma sword, energy hammer, magic staff | ⬜ |
+| Plasma sword | ✅ |
+| Energy hammer, magic staff | ⬜ |
 
 ## Abilities
 
@@ -56,7 +59,7 @@ Abilities will be new `FighterState`s (cast states) plus a resource/meter system
 | Item | Status |
 | --- | --- |
 | Versus (1P vs CPU, 2P local, CPU vs CPU) | ✅ |
-| Arena / endless survival | ⬜ |
+| Arena / endless survival | ✅ (waves scale in count, health, AI level and weapons) |
 | Tournament bracket | ⬜ |
 | Story mode (20+ levels, bosses, rivals, cutscenes, multiple endings) | ⬜ |
 
@@ -76,7 +79,7 @@ Abilities will be new `FighterState`s (cast states) plus a resource/meter system
 | Predicts player movement | ✅ (velocity lead) |
 | Adapts to player strategies | 🟡 (counts jump-ins and heavies; deeper learning planned) |
 | Uses abilities intelligently | ⬜ (needs abilities) |
-| Teams up in group battles | ⬜ (targeting already supports more than two fighters) |
+| Teams up in group battles | ✅ (teams, no friendly fire, allies take turns engaging) |
 
 ## Progression and customisation
 
@@ -91,13 +94,14 @@ Abilities will be new `FighterState`s (cast states) plus a resource/meter system
 | Item | Status |
 | --- | --- |
 | Neon Rooftop | ✅ |
-| 14 more arenas (dojo, forest, volcano, castle, cyber city, space station, temple, underwater facility, ancient ruins…) | ⬜ |
+| Moonlit Dojo | ✅ |
+| 13 more arenas (forest, volcano, castle, cyber city, space station, temple, underwater facility, ancient ruins…) | ⬜ |
 
 ## Graphics, audio, platform
 
 | Item | Status |
 | --- | --- |
-| Smooth procedural animation, trails, particles, weather (rain) | ✅ |
+| Smooth procedural animation, trails, particles, weather (rain, cherry petals) | ✅ |
 | Dynamic lighting, motion blur | ⬜ |
 | Punch / clash / KO sounds | ✅ (synthesised) |
 | Music, dynamic combat music, spatial audio | ⬜ |

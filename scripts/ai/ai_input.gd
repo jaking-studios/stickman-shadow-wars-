@@ -105,14 +105,31 @@ func _decide(f: Fighter, t: Fighter) -> void:
 		press(&"heavy")
 		return
 
-	# 4. Follow a target standing on a platform above.
+	# 4. Grab a nearby weapon while unarmed.
+	if f.weapon == null and f.is_on_floor() and dist > 140.0:
+		var pickup := _nearest_pickup(f)
+		if pickup and absf(pickup.global_position.x - me.x) < 340.0:
+			_move = signf(pickup.global_position.x - me.x)
+			_move_frames = int(profile.react) + 6
+			if pickup.global_position.y < me.y - 100.0:
+				press(&"jump")
+			return
+
+	# 5. Team up: if an ally is already brawling, circle at mid range
+	#    instead of piling in, and wait for an opening.
+	if dist < 220.0 and _ally_engaging(f, t) and randf() < 0.6:
+		_move = -dir if dist < 150.0 else 0.0
+		_move_frames = 10
+		return
+
+	# 6. Follow a target standing on a platform above.
 	if dy < -120.0 and dist < 280.0 and f.is_on_floor():
 		press(&"jump")
 		_move = dir
 		_move_frames = 24
 		return
 
-	# 5. Close the distance.
+	# 7. Close the distance.
 	if dist > CLOSE_RANGE:
 		_move = dir
 		_move_frames = int(profile.react) + 4
@@ -120,7 +137,7 @@ func _decide(f: Fighter, t: Fighter) -> void:
 			press(&"jump")
 		return
 
-	# 6. In range: attack, guard, or step back to bait.
+	# 8. In range: attack, guard, or step back to bait.
 	if randf() < float(profile.aggression):
 		var r := randf()
 		if r < 0.6:
@@ -135,6 +152,28 @@ func _decide(f: Fighter, t: Fighter) -> void:
 	else:
 		_move = -dir
 		_move_frames = 8
+
+
+func _nearest_pickup(f: Fighter) -> Node2D:
+	var best: Node2D = null
+	var best_d := INF
+	for node in f.get_tree().get_nodes_in_group(&"pickups"):
+		var p := node as WeaponPickup
+		if p == null or not p.grounded:
+			continue
+		var d := f.global_position.distance_squared_to(p.global_position)
+		if d < best_d:
+			best_d = d
+			best = p
+	return best
+
+
+func _ally_engaging(f: Fighter, t: Fighter) -> bool:
+	for node in f.get_tree().get_nodes_in_group(&"fighters"):
+		var ally := node as Fighter
+		if ally != f and ally.team == f.team and ally.is_alive() and ally.global_position.distance_to(t.global_position) < 100.0:
+			return true
+	return false
 
 
 ## Every frame: keep a landed combo going.

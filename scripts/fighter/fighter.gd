@@ -21,6 +21,7 @@ const HURTBOX := Rect2(-15, -92, 30, 92)
 const PLATFORM_LAYER := 3
 const COUNTER_WINDOW := 50
 const PUSH_RADIUS := 30.0
+static var UNARMED := MoveLibrary.unarmed()
 
 const STATES := {
 	&"ground": preload("res://scripts/fighter/states/ground_state.gd"),
@@ -40,11 +41,18 @@ const STATES := {
 @export var body_color := Color(0.9, 0.94, 1.0)
 @export var aura_color := Color(0.3, 0.6, 1.0, 1.0)
 @export var max_health := 100.0
+## Fighters on the same team never hit or target each other.
+@export var team := 0
+@export var eye_color := Color(0.04, 0.04, 0.07)
+## Draws a small health bar above the head (survival enemies).
+@export var show_overhead_bar := false
 
 var health := 100.0
 var facing := 1
 var input: FighterInput = FighterInput.new()
-var moveset: Dictionary = MoveLibrary.unarmed()
+var moveset: Dictionary = UNARMED
+var weapon: WeaponData
+var weapon_uses := 0
 var air_jumps := 1
 var air_dodge_available := true
 var hitstop := 0
@@ -83,6 +91,7 @@ func _ready() -> void:
 	rig = StickRig.new()
 	rig.color = body_color
 	rig.aura_color = aura_color
+	rig.eye_color = eye_color
 	add_child(rig)
 
 	health = max_health
@@ -123,6 +132,10 @@ func _draw() -> void:
 		draw_set_transform(Vector2(0, 2), 0.0, Vector2(1.0, 0.25))
 		draw_circle(Vector2.ZERO, 28.0, Color(0, 0, 0, 0.4))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if show_overhead_bar and is_alive():
+		var w := 46.0
+		draw_rect(Rect2(-w * 0.5 - 1, -122, w + 2, 7), Color(0, 0, 0, 0.7))
+		draw_rect(Rect2(-w * 0.5, -121, w * health / max_health, 5), aura_color.lightened(0.2))
 	if GameState.debug_hitboxes:
 		draw_rect(HURTBOX, Color(0.2, 1.0, 0.3, 0.25))
 		var atk := current_attack()
@@ -178,7 +191,7 @@ func target() -> Fighter:
 	var best_dist := INF
 	for node in get_tree().get_nodes_in_group(&"fighters"):
 		var other := node as Fighter
-		if other == self or not other.is_alive():
+		if other == self or other.team == team or not other.is_alive():
 			continue
 		var d := global_position.distance_squared_to(other.global_position)
 		if d < best_dist:
@@ -223,6 +236,31 @@ func pick_heavy() -> StringName:
 	if absf(velocity.x) > RUN_SPEED * 0.85 and signf(velocity.x) == float(facing):
 		return &"dash_strike"
 	return &"heavy"
+
+
+# --- Weapons -------------------------------------------------------------
+
+func equip(new_weapon: WeaponData) -> void:
+	weapon = new_weapon
+	weapon_uses = new_weapon.durability
+	moveset = new_weapon.moveset
+	rig.weapon = new_weapon
+
+
+func unequip() -> void:
+	weapon = null
+	moveset = UNARMED
+	rig.weapon = null
+
+
+## Called by the attack state whenever a weapon swing connects.
+func wear_weapon() -> void:
+	if weapon == null:
+		return
+	weapon_uses -= 1
+	if weapon_uses <= 0:
+		CombatBus.fx.emit(&"weapon_break", rig.to_global(rig.joints.get(&"blade_tip", Vector2.ZERO)), {"color": weapon.color})
+		unequip()
 
 
 func start_attack(id: StringName) -> void:
@@ -333,6 +371,7 @@ func reset_for_round(spawn: Vector2, face: int) -> void:
 	counter_frames = 0
 	combo_taken = 0
 	rig.stop_ragdoll()
+	unequip()
 	rig.spin = 0.0
 	rig.scale.x = facing
 	states.change(&"ground")

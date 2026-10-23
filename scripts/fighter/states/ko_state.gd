@@ -7,6 +7,9 @@ func enter(msg: Dictionary) -> void:
 	f.velocity = Vector2.ZERO
 	f.rig.spin = 0.0
 	f.rig.start_ragdoll(msg.get("knockback", Vector2(0, -300)))
+	if f.weapon:
+		CombatBus.fx.emit(&"weapon_drop", f.global_position + Vector2(0, -60), {"weapon": f.weapon})
+		f.unequip()
 
 
 func is_invulnerable() -> bool:

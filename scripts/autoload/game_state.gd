@@ -2,18 +2,21 @@ extends Node
 ## Match settings chosen in the menu, plus the persistent player profile.
 ## The profile is the seed of the progression system (XP, currency, unlocks).
 
-enum Mode { VS_CPU, VS_LOCAL, CPU_VS_CPU }
+enum Mode { VS_CPU, VS_LOCAL, CPU_VS_CPU, SURVIVAL }
 
 const DIFFICULTIES := ["Easy", "Normal", "Hard", "Nightmare"]
 const PROFILE_PATH := "user://profile.json"
+const ARENAS := ["Neon Rooftop", "Moonlit Dojo", "Random"]
 
 var mode := Mode.VS_CPU
 var difficulty := 1
 var rounds_to_win := 2
+var arena_choice := 2
+var weapons_enabled := true
 var debug_hitboxes := false
 ## `-- --log` prints combat events to stdout (used by the CI smoke test).
 var log_events := "--log" in OS.get_cmdline_user_args()
-var profile := {"matches": 0, "wins": 0, "xp": 0, "best_combo": 0}
+var profile := {"matches": 0, "wins": 0, "xp": 0, "best_combo": 0, "best_wave": 0, "total_kos": 0}
 
 
 var _shots := {}
@@ -55,6 +58,20 @@ func record_match(player_won: bool, best_combo: int) -> void:
 		profile.wins += 1
 	profile.xp += 100 if player_won else 35
 	profile.best_combo = maxi(profile.best_combo, best_combo)
+	save_profile()
+
+
+## Arena theme index for the next fight (resolves "Random").
+func pick_arena() -> int:
+	if arena_choice >= ARENAS.size() - 1:
+		return randi() % (ARENAS.size() - 1)
+	return arena_choice
+
+
+func record_survival(wave: int, kos: int) -> void:
+	profile.best_wave = maxi(profile.best_wave, wave)
+	profile.total_kos += kos
+	profile.xp += kos * 15 + wave * 20
 	save_profile()
 
 

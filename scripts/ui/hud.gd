@@ -11,6 +11,12 @@ var wins: Array = [0, 0]
 var time_left := 99.0
 var rounds_to_win := 2
 var hint := ""
+var show_timer := true
+## How many fighters get a big health bar (survival shows only the player).
+var max_bars := 2
+## Text shown top-right when there is no second bar (wave counter).
+var side_text := ""
+var side_sub := ""
 
 var _trail_health: Array[float] = [100.0, 100.0]
 var _trail_delay: Array[float] = [0.0, 0.0]
@@ -40,7 +46,7 @@ func announce(text: String, sub := "", duration := 1.4) -> void:
 
 
 func show_combo(player: int, count: int) -> void:
-	if player < 0 or player > 1:
+	if player < 0 or player >= mini(max_bars, 2):
 		return
 	_combo[player] = count
 	_combo_t[player] = 1.4
@@ -49,7 +55,7 @@ func show_combo(player: int, count: int) -> void:
 func _process(delta: float) -> void:
 	# Real time, so the HUD stays responsive during slow motion.
 	var dt := delta / maxf(Engine.time_scale, 0.01)
-	for i in mini(fighters.size(), 2):
+	for i in mini(fighters.size(), mini(max_bars, 2)):
 		var f: Fighter = fighters[i]
 		if f.health < _trail_health[i]:
 			if _trail_delay[i] <= 0.0:
@@ -68,7 +74,7 @@ func draw_hud(c: Control) -> void:
 	var font := ThemeDB.fallback_font
 	var size := c.size
 	var bar_w := minf(520.0, size.x * 0.36)
-	for i in mini(fighters.size(), 2):
+	for i in mini(fighters.size(), mini(max_bars, 2)):
 		var f: Fighter = fighters[i]
 		var left := i == 0
 		var x := MARGIN if left else size.x - MARGIN - bar_w
@@ -101,9 +107,20 @@ func draw_hud(c: Control) -> void:
 
 	# Timer.
 	var cx := size.x * 0.5
-	c.draw_rect(Rect2(cx - 44, MARGIN - 8, 88, 58), Color(0, 0, 0, 0.6))
-	var timer_col := Color(1.0, 0.35, 0.3) if time_left <= 10.0 else Color.WHITE
-	_text(c, font, Vector2(cx - 60, MARGIN + 36), str(ceili(time_left)), HORIZONTAL_ALIGNMENT_CENTER, 120, 40, timer_col)
+	if show_timer:
+		c.draw_rect(Rect2(cx - 44, MARGIN - 8, 88, 58), Color(0, 0, 0, 0.6))
+		var timer_col := Color(1.0, 0.35, 0.3) if time_left <= 10.0 else Color.WHITE
+		_text(c, font, Vector2(cx - 60, MARGIN + 36), str(ceili(time_left)), HORIZONTAL_ALIGNMENT_CENTER, 120, 40, timer_col)
+	if side_text != "":
+		_text(c, font, Vector2(size.x - MARGIN - bar_w, MARGIN + 30), side_text, HORIZONTAL_ALIGNMENT_RIGHT, bar_w, 40, Color(0.75, 0.55, 1.0))
+		_text(c, font, Vector2(size.x - MARGIN - bar_w, MARGIN + 58), side_sub, HORIZONTAL_ALIGNMENT_RIGHT, bar_w, 18, Color(1, 1, 1, 0.75))
+	# Weapon durability under each bar.
+	for i in mini(fighters.size(), mini(max_bars, 2)):
+		var f: Fighter = fighters[i]
+		if f.weapon:
+			var wx := MARGIN if i == 0 else size.x - MARGIN - bar_w
+			var txt := "%s  %d" % [f.weapon.display_name.to_upper(), f.weapon_uses]
+			_text(c, font, Vector2(wx + (60.0 if i == 0 else 0.0), MARGIN + BAR_H + 58), txt, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT, bar_w - 60.0, 16, f.weapon.color)
 
 	# Announcer.
 	if _announce != "" and _announce_t < _announce_len:

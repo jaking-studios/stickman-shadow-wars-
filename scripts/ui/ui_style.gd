@@ -10,9 +10,9 @@ const ACCENT_HOT := Color(1.0, 0.3, 0.55)
 static func make_button(text: String, min_width := 380.0) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(min_width, 58)
+	b.custom_minimum_size = Vector2(min_width, 50)
 	b.focus_mode = Control.FOCUS_ALL
-	b.add_theme_font_size_override("font_size", 26)
+	b.add_theme_font_size_override("font_size", 24)
 	b.add_theme_color_override("font_color", Color(0.9, 0.93, 1.0))
 	b.add_theme_color_override("font_hover_color", Color.WHITE)
 	b.add_theme_color_override("font_focus_color", Color.WHITE)

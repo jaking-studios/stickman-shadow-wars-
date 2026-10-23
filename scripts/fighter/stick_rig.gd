@@ -54,6 +54,8 @@ const POSES := {
 	&"air_kick_wind": {"t": -4, "uaf": 100, "faf": 150, "uab": -40, "fab": -60, "thf": 72, "shf": -30, "thb": -10, "shb": -60, "snap": false, "hy": AIR_HIP},
 	&"air_kick": {"t": -22, "uaf": 120, "faf": 122, "uab": -60, "fab": -40, "thf": 96, "shf": 96, "thb": -30, "shb": -90, "snap": false, "hy": AIR_HIP},
 	&"air_spin": {"t": -30, "uaf": 140, "faf": 160, "uab": -100, "fab": -130, "thf": 122, "shf": 128, "thb": -20, "shb": -70, "snap": false, "hy": AIR_HIP},
+	&"slash_wind": {"t": -14, "uaf": -150, "faf": -175, "uab": 30, "fab": 120, "thf": 30, "shf": 8, "thb": -28, "shb": -30},
+	&"slash": {"t": 30, "uaf": 70, "faf": 40, "uab": -30, "fab": 10, "thf": 40, "shf": 12, "thb": -40, "shb": -32},
 	&"slam_wind": {"t": -16, "uaf": 175, "faf": 176, "uab": 170, "fab": 175, "thf": 52, "shf": -20, "thb": 10, "shb": -40, "snap": false, "hy": AIR_HIP},
 	&"slam": {"t": 36, "uaf": 52, "faf": 22, "uab": 42, "fab": 16, "thf": 10, "shf": 0, "thb": -10, "shb": -5, "snap": false, "hy": AIR_HIP},
 }
@@ -86,6 +88,8 @@ var health_ratio := 1.0
 var frozen := false
 var shake := 0.0
 var trail_joint: StringName = &""
+## Held weapon (drawn in the front hand) or null for fists.
+var weapon: WeaponData
 var joints := {}
 var ragdoll_active := false
 
@@ -199,6 +203,11 @@ func _solve() -> void:
 		&"knee_f": knee_f, &"foot_f": knee_f + _dir(_cur["shf"]) * SHIN,
 		&"knee_b": knee_b, &"foot_b": knee_b + _dir(_cur["shb"]) * SHIN,
 	}
+	if weapon:
+		var hand: Vector2 = j[&"hand_f"]
+		var along: Vector2 = (hand - elbow_f).normalized()
+		j[&"blade_base"] = hand - along * (14.0 if weapon.style == &"spear" else 6.0)
+		j[&"blade_tip"] = hand + along * weapon.length
 	if spin != 0.0:
 		var pivot := hip + up * (TORSO * 0.3)
 		for k in j.keys():
@@ -231,11 +240,42 @@ func _draw() -> void:
 	draw_circle(pts[&"hip"], (LIMB_W + 1.5) * 0.5, c)
 	draw_circle(pts[&"neck"], (LIMB_W + 1.5) * 0.5, c)
 	_limb(pts, &"hip", &"knee_f", &"foot_f", c)
+	if weapon and not ragdoll_active and pts.has(&"blade_tip"):
+		draw_weapon_shape(self, weapon, pts[&"blade_base"], pts[&"blade_tip"])
 	_limb(pts, &"neck", &"elbow_f", &"hand_f", c)
 	var head: Vector2 = pts[&"head"]
 	var up: Vector2 = (head - pts[&"neck"]).normalized()
 	draw_circle(head, HEAD_R, c)
 	draw_circle(head + Vector2(-up.y, up.x) * 4.0 + up * 1.5, 2.2, eye_color)
+
+
+## Shared with weapon pickups so a weapon looks the same in hand and on the floor.
+static func draw_weapon_shape(ci: CanvasItem, w: WeaponData, base: Vector2, tip: Vector2) -> void:
+	var along := (tip - base).normalized()
+	var side := Vector2(-along.y, along.x)
+	var col := w.color
+	match w.style:
+		&"hammer":
+			var neck := tip - along * 6.0
+			ci.draw_line(base, neck, Color(0.45, 0.3, 0.2), 4.0)
+			var head := PackedVector2Array([neck + side * 13.0 - along * 7.0, neck + side * 13.0 + along * 9.0, neck - side * 13.0 + along * 9.0, neck - side * 13.0 - along * 7.0])
+			ci.draw_colored_polygon(head, col)
+			ci.draw_polyline(head + PackedVector2Array([head[0]]), col.lightened(0.35), 1.5)
+		&"spear":
+			ci.draw_line(base, tip - along * 12.0, Color(0.55, 0.38, 0.22), 3.5)
+			ci.draw_colored_polygon(PackedVector2Array([tip, tip - along * 14.0 + side * 5.0, tip - along * 14.0 - side * 5.0]), col)
+		&"plasma":
+			ci.draw_line(base, base + along * 9.0, Color(0.25, 0.25, 0.3), 5.0)
+			var start := base + along * 9.0
+			ci.draw_line(start, tip, Color(col, 0.25), 13.0)
+			ci.draw_line(start, tip, Color(col, 0.6), 7.0)
+			ci.draw_line(start, tip, Color(0.92, 1.0, 1.0), 3.0)
+			ci.draw_circle(tip, 3.0, Color(0.92, 1.0, 1.0))
+		_:
+			ci.draw_line(base, base + along * 9.0, Color(0.2, 0.18, 0.22), 5.0)
+			ci.draw_line(base + along * 8.0 + side * 6.0, base + along * 8.0 - side * 6.0, Color(0.85, 0.7, 0.3), 3.0)
+			ci.draw_line(base + along * 9.0, tip, col, 3.5)
+			ci.draw_line(base + along * 9.0 + side * 1.2, tip, Color(1, 1, 1, 0.7), 1.2)
 
 
 func _limb(pts: Dictionary, a: StringName, b: StringName, tip: StringName, col: Color) -> void:
@@ -258,12 +298,14 @@ func _draw_trail() -> void:
 	if _trail.size() < 2:
 		return
 	var tint := aura_color if aura_color.a > 0.0 else color
+	if weapon:
+		tint = weapon.color
 	var pts := PackedVector2Array()
 	var cols := PackedColorArray()
 	for item in _trail:
 		pts.append(to_local(item[0]))
 		cols.append(Color(tint, (1.0 - item[1] / TRAIL_TIME) * 0.85))
-	draw_polyline_colors(pts, cols, 8.0, true)
+	draw_polyline_colors(pts, cols, 11.0 if weapon else 8.0, true)
 
 
 # --- Ragdoll -------------------------------------------------------------
