@@ -2,8 +2,8 @@
 *.import
 export/
 build/
-*.apk
 *.aab
 *.keystore
 export_credentials.cfg
 .DS_Store
+!downloads/*.apk

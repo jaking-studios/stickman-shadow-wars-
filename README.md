@@ -13,7 +13,25 @@ Chain combos, parry on the frame, roll through attacks, grab a katana or a war h
 
 <img src="docs/screenshots/gameplay.gif" alt="CPU vs CPU gameplay: combos, parries, knockdowns" width="720">
 
+## ⬇️ Download and play
+
+<a href="https://github.com/jaineil32624/stickman-shadow-wars-/raw/main/downloads/StickmanShadowWars.apk"><img src="https://img.shields.io/badge/Android-Download%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="42"></a>
+<a href="https://github.com/jaineil32624/stickman-shadow-wars-/raw/main/downloads/StickmanShadowWars-windows.zip"><img src="https://img.shields.io/badge/Windows-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="42"></a>
+<a href="https://jaineil32624.github.io/stickman-shadow-wars-/"><img src="https://img.shields.io/badge/Browser-Play%20Now-FF4D6D?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Play in browser" height="42"></a>
+<br>
+<a href="https://github.com/jaineil32624/stickman-shadow-wars-/raw/main/downloads/StickmanShadowWars-linux.zip"><img src="https://img.shields.io/badge/Linux-Download-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download for Linux" height="42"></a>
+<a href="https://github.com/jaineil32624/stickman-shadow-wars-/archive/refs/heads/main.zip"><img src="https://img.shields.io/badge/Godot%20Project-Download-478CBF?style=for-the-badge&logo=godotengine&logoColor=white" alt="Download Godot project" height="42"></a>
+<a href="https://github.com/jaineil32624/stickman-shadow-wars-/raw/main/downloads/StickmanShadowWars-web.zip"><img src="https://img.shields.io/badge/Web%20Build-Download-6E40C9?style=for-the-badge&logo=html5&logoColor=white" alt="Download web build" height="42"></a>
+
 </div>
+
+| Platform | How to run |
+| --- | --- |
+| 🤖 **Android** | Tap the APK button on your phone, open the file, allow "install unknown apps", install |
+| 🪟 **Windows** | Unzip, run `StickmanShadowWars.exe` (if SmartScreen appears: More info → Run anyway) |
+| 🌐 **Browser** | Click Play Now. Works on desktop and phone browsers |
+| 🐧 **Linux** | Unzip, `chmod +x StickmanShadowWars.x86_64`, run |
+| 🛠️ **Godot** | Unzip the project, open `project.godot` in Godot 4.3+, press F5 |
 
 ## Screenshots
 
@@ -26,16 +44,6 @@ Chain combos, parry on the frame, roll through attacks, grab a katana or a war h
 | ![Wall splat in the Moonlit Dojo](docs/screenshots/dojo.png) | ![On-screen joystick and action buttons](docs/screenshots/mobile.png) |
 | **Perfect parry** | |
 | ![A perfect parry flashing gold](docs/screenshots/parry.png) | |
-
-## Play it
-
-| Platform | How |
-| --- | --- |
-| 🌐 **Browser** | GitHub Pages build: `https://jaineil32624.github.io/stickman-shadow-wars-/` (after Pages is enabled, see below) |
-| 🤖 **Android** | Download `StickmanShadowWars.apk` from the latest [Release](../../releases), open it on your phone and allow "install unknown apps" |
-| 🪟 **Windows** | Download the Windows zip from [Releases](../../releases) and run `StickmanShadowWars.exe` |
-| 🐧 **Linux** | Download the Linux zip from [Releases](../../releases), `chmod +x` and run |
-| 🛠️ **Godot editor** | Open `project.godot` in Godot 4.3+ and press F5 |
 
 ## Features
 
