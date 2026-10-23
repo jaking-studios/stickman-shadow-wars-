@@ -132,7 +132,7 @@ scripts/
 GitHub Actions (`.github/workflows/build.yml`) runs a headless CPU-vs-CPU smoke test on every push, then exports **Windows, Linux, Android (APK) and Web**. Builds are attached to each run as artifacts.
 
 - **Release:** push a tag such as `v0.1.0` and the workflow publishes a GitHub Release with all downloads.
-- **Play in the browser:** in the repo go to *Settings → Pages → Source: GitHub Actions* once. Every push to `main` then deploys the web build.
+- **Play in the browser:** in the repo go to *Settings → Pages → Deploy from a branch → `gh-pages` / root* once. Every push to `main` then republishes the web build.
 
 Local export: install Godot 4.3 export templates, then `Project → Export`. Android export needs an Android SDK path and debug keystore in *Editor Settings → Export → Android*.
 

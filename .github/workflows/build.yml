@@ -2,8 +2,8 @@ name: Build
 
 # Builds Windows, Linux, Android (APK) and Web on every push. Pushing a tag
 # like v0.1.0 also publishes a GitHub Release with the downloads, and pushes
-# to main deploy the Web build to GitHub Pages (enable Pages -> "GitHub
-# Actions" in the repository settings once).
+# to main publish the Web build to the gh-pages branch (Settings -> Pages ->
+# Deploy from a branch -> gh-pages, once).
 
 on:
   push:
@@ -101,23 +101,20 @@ jobs:
             dist/StickmanShadowWars.apk
 
   pages:
-    name: Deploy web build to GitHub Pages
+    name: Publish web build to the gh-pages branch
     if: github.ref == 'refs/heads/main'
     needs: export
     runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: StickmanShadowWars-web
           path: web
-      - uses: actions/upload-pages-artifact@v3
+      - run: touch web/.nojekyll
+      - uses: peaceiris/actions-gh-pages@v4
         with:
-          path: web
-      - id: deploy
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: web
+          publish_branch: gh-pages
